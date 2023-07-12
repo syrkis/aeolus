@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --partition brown,red
+#SBATCH --partition brown
 #SBATCH --cpus-per-task=1
 #SBATCH --time 01:00:00
 #SBATCH --job-name jupyter-notebook
@@ -48,6 +48,4 @@ module --ignore-cache load singularity/3.4.1
 # DON'T USE ADDRESS BELOW.
 # DO USE TOKEN BELOW
 # TOKEN FROM ENVIRONMENT VARIABLE
-singularity exec --bind ${PWD}:/home/nobr/aeolus container.0.sif jupyter lab --no-browser --port=${port} --ip=0.0.0.0
-
-
+singularity exec --bind ${PWD}:/home/nobr/aeolus container.sif jupyter lab --no-browser --port=${port} --ip=0.0.0.0
