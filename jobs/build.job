@@ -11,4 +11,4 @@
 
 module load singularity
 
-singularity build container.sif docker://darribas/gds_py
+singularity build container.sif docker://syrkis/aeolus
