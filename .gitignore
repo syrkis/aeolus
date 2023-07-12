@@ -1,3 +1,7 @@
 data
 container.sif
-logs
+logs.local
+.cache
+.local
+.ipython
+.jupyter
