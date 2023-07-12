@@ -1,6 +1,6 @@
 data
 container.sif
-logs.local
+logs
 .cache
 .local
 .ipython
