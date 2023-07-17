@@ -6,3 +6,4 @@ logs
 .ipython
 .jupyter
 report/.obsidian
+.ipynb_checkpoints/
