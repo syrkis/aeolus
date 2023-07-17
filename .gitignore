@@ -5,3 +5,4 @@ logs
 .local
 .ipython
 .jupyter
+.ipynb_checkpoints/
