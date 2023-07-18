@@ -7,3 +7,4 @@ logs
 .jupyter
 report/.obsidian
 .ipynb_checkpoints/
+src/__pycache__/
