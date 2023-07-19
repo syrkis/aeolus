@@ -2,11 +2,7 @@
 
 #SBATCH --partition red
 #SBATCH --cpus-per-task=1
-<<<<<<< HEAD
-#SBATCH --time 03:00:00
-=======
 #SBATCH --time 06:00:00
->>>>>>> d4d52b0d22d7f375c27e3a78dde7d6bbb84d5ed1
 #SBATCH --job-name jupyter-notebook
 #SBATCH --output logs/jupyter.log
 #SBATCH --mem=90G
