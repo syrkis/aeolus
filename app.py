@@ -31,6 +31,7 @@ def make_mask(frame, theshold=None):
 
 def mask_ratio(mask):
     return mask.sum() / data['Brazil'].sum()
+    
 
 data = load_data()
 
@@ -71,47 +72,38 @@ col3.image(wind_speed_mask, use_column_width=True)
 
 
 
+# final mask
+final_mask = (power_density_mask *
+              ((grid_distance_mask + data['Offshore']) > 0) *
+              wind_speed_mask)
+                # data['Protected Areas'])
 
-final_mask = ((power_density_mask * ((grid_distance_mask + data['Offshore']) > 0) * wind_speed_mask))
 
 
-
-# Visualization
-# mask = make_mask(data, {'Power Density': power_density, 'Wind Speed': wind_speed})
 col1, col2 = st.columns(2)
-
-
-
 col1.header(f"{mask_ratio(final_mask) * 100:.2f}% of Brazil is suitable for wind power generation")
 col1.write(f"""Five of Brazil's 26 states have meterological conditions that are suitable for wind power generation.
                Using your thresholds, {mask_ratio(final_mask) * 100:.2f}% of Brazil is suitable for wind power generation.""")
-col1.write(f"""Download the mask as a GeoTIFF [here]()""")
-
+col1.write(f"""The map to the right shows the areas that are suitable for wind power generation, using your thresholds.
+               You can download the mask below, and use it to further explore the data in your own tools.""")
+col1.download_button('Download mask', final_mask.tostring(), 'mask.npy', 'application/octet-stream')
 col2.image(final_mask, caption='Final mask', use_column_width=True)
 
 
 
-
 # about the project
-st.title("More info on the map construction")
-st.write(f"""In addition to the modalities that you control,
-        the map also excludes areas that are not suitable for wind power generation,
-        biodiversity conservation areas and areas with high roughness, and population.
-         The constraints and the base topography can be seen below.""")
+st.title("Exclude areas")
+st.write(f"""In addition to the thesholds you've set,
+        the map also excludes areas that are not suitable due biodiversity considerations, airports, and other protected areas.""")
 
-# new columns
+
+# images
 col1, col2, col3 = st.columns(3)
-
-
 col1.image(data['Protected Areas'], caption='Protected Areas', use_column_width=True)
 col2.image(data['Airports'], caption='Airports', use_column_width=True)
 col3.image(data['Slope'], caption='Slope', use_column_width=True)
 
 
+
 # footer
-st.write(f"""For more information on the potential of wind power generation in Brazil,
-        contact the [Brazilian Climate Center.](https://doe.climatempo.com.br/cbc)""")
-
-
-
 st.write('*Power density is an aggregate measure by the Global Winds Atlas, representing how much potential wind power is in an area.')
