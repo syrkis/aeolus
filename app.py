@@ -34,7 +34,7 @@ def make_mask(frame, theshold=None, over=True):
 
 
 
-data = load_data()
+all_data = load_data()
 
 # Header
 st.title("Brazilian wind farm location scout")
@@ -49,6 +49,8 @@ st.sidebar.title("Explorer")
 
 # st.sidebar.markdown("Select the region")
 region = st.sidebar.selectbox("Region", ['All', 'Northeast', 'South', 'Southeast', 'North', 'Center-West'])
+
+data = all_data
 
 
 st.sidebar.markdown("Select factor thresholds")
@@ -65,7 +67,7 @@ grid_distance_mask = make_mask(data['Power Lines'], grid_distance)
 roughness_mask = make_mask(data['Roughness'], roughness)
 wind_speed_mask = make_mask(data['Wind Speed'], wind_speed)
 
-final_mask = (power_density_mask * grid_distance_mask * roughness_mask * wind_speed_mask).astype(float)
+final_mask = (data['Brazil'] * power_density_mask * grid_distance_mask * roughness_mask * wind_speed_mask).astype(float)
 
 
 # Visualization
