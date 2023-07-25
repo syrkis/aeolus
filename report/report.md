@@ -146,9 +146,7 @@ Processing this extensive dataset presented a significant computational challeng
 
   
 
-We executed queries against the OSM data in PostGIS to identify protected areas within Brazil. These queries returned vector data delineating these protected regions. For compatibility with our other modalities, we then transformed this vector data into a raster format. This transformation process facilitates a more streamlined integration with our other raster-based datasets.
-
-  
+We executed queries against the OSM data in PostGIS to identify protected areas within Brazil. These queries returned vector data delineating these protected regions. For compatibility with our other modalities, we then transformed this vector data into a raster format. This transformation process facilitates a more streamlined integration with our other raster-based datasets.   
 
 Through this process, we found that approximately 7% of Brazil's territory falls within protected areas. It is worth noting, however, that the measure of protected areas, while useful, may not entirely capture the ecological significance of all regions. Some areas of high biodiversity value might remain unprotected, hence this modality could potentially be enriched with additional biodiversity measures in future iterations of the project.
 
