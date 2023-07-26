@@ -19,7 +19,7 @@ def pad_matrix_to_square(M):
     return np.pad(M, pad_width, mode='constant', constant_values=0)
 
 @st.cache_data
-def load_data(state=None)
+def load_data(state=None):
     fps = ['power_density', 'powerlines', 'population_mask', 'wind_speed', 'protected_areas_mask', 'airport_mask', 'slope_mask', 'roughness', 'brazil_mask', 'offshore_mask']
     if state is not None:
         fps = [fp + '_' + state for fp in fps]
