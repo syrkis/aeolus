@@ -58,7 +58,8 @@ def moran_i(mask, _):
     # exclude values outside of the brazil offshore mask
     moran = Moran(mask.flatten(), w)
     return moran.I * moran_brazil_ratio
-    
+
+area_sizes = {'Brazil': 8514215, 'Rio Grande do Norte': 52796, 'Bahia': 565733, 'Rio Grande do Sul': 281707, 'Piaui': 251529, 'Nordeste': 1558196}
 
 all_data = {state: load_data(state) for state in  ['Rio Grande do Norte', 'Bahia', 'Rio Grande do Sul', 'Piaui', 'Nordeste']}
 all_data['Brazil'] = load_data()
@@ -93,7 +94,7 @@ protected_areas_mask = ((data['Protected Areas'] + data['Airports'] + data['Offs
 power_density_threshold = slider1.slider("Power dentiy* (percentile)", 50, 99, 50)
 grid_distance_threshold = 26 - slider2.slider("Max distance (km) to 400V+ power line", 5, 25, 25)
 wind_speed_threshold = slider3.slider("Minimum wind speed (m/s)", 5, 10, 5)
-roughness_threshold = int(slider4.slider("Terrain Roughness (percentile)", 0, 100, 0) / 2) + 50
+roughness_threshold = int(slider4.slider("Terrain Roughness (percentile)", 1, 99, 0) / 2) + 49
 
 # masks
 power_density_mask = make_mask(data['Power Density'], power_density_threshold)
@@ -119,7 +120,7 @@ final_mask = (power_density_mask *
 
 
 col1, col2 = st.columns(2)
-col1.header(f"{mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation")
+col1.header(f"{mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation. Thats {area_sizes[selected_region] * mask_ratio(final_mask):,.0f} km²!")
 col1.write(f"""Using your thresholds, {mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation.""")
 col1.write(f"""The map to the right shows the areas that are suitable for wind power generation, using your thresholds.""")
 col1.write("Moran's I is a measure of spatial autocorrelation that quantifies the degree to which the potential wind farm areas are clustered together. The measure ranges from -1 (perfect dispersion) to 1 (perfect clustering). Click below to compute—this may take a few seconds.")
