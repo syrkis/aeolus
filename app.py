@@ -24,7 +24,10 @@ def load_data(state=None):
     if state is not None:
         fps = [fp + '_' + state for fp in fps]
     names = ['Power Density', 'Power Lines', 'Population', 'Wind Speed', 'Protected Areas', 'Airports', 'Slope', 'Roughness', 'Brazil', 'Offshore']
-    data = {name: pad_matrix_to_square(np.load(os.path.join("masks", fp + '.npy'))).astype(float)[::3, ::3] for fp, name in zip(fps, names)}
+    if state is not None:
+        data = {name: pad_matrix_to_square(np.load(os.path.join("masks", fp + '.npy'))).astype(float) for fp, name in zip(fps, names)}
+    else:
+        data = {name: pad_matrix_to_square(np.load(os.path.join("masks", fp + '.npy'))).astype(float)[::3, ::3] for fp, name in zip(fps, names)}
     data['Power Density'] /= (data['Power Density'].max() / 100)
     data['Population'] /= (data['Population'].max() / 100)
     data['Roughness'] = data['Roughness'] * data['Brazil']
