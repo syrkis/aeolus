@@ -8,13 +8,23 @@ from libpysal.weights import lat2W
 # set wide layout
 st.set_page_config(layout="wide")
 
+def pad_matrix_to_square(M):
+    """Pad a matrix with zeros to make it square."""
+    if M.shape[0] == M.shape[1]:
+        return M
+    elif M.shape[0] > M.shape[1]:
+        pad_width = ((0, 0), (0, M.shape[0] - M.shape[1]))
+    else:
+        pad_width = ((0, M.shape[1] - M.shape[0]), (0, 0))
+    return np.pad(M, pad_width, mode='constant', constant_values=0)
+
 @st.cache_data
 def load_data(state=None):
     fps = ['power_density', 'powerlines', 'population_mask', 'wind_speed', 'protected_areas_mask', 'airport_mask', 'slope_mask', 'roughness', 'brazil_mask', 'offshore_mask']
     if state is not None:
         fps = [fp + '_' + state for fp in fps]
     names = ['Power Density', 'Power Lines', 'Population', 'Wind Speed', 'Protected Areas', 'Airports', 'Slope', 'Roughness', 'Brazil', 'Offshore']
-    data = {name: np.load(os.path.join("masks", fp + '.npy')).astype(float)[::2, ::2] for fp, name in zip(fps, names)}
+    data = {name: pad_matrix_to_square(np.load(os.path.join("masks", fp + '.npy'))).astype(float)[::3, ::3] for fp, name in zip(fps, names)}
     data['Power Density'] /= (data['Power Density'].max() / 100)
     data['Population'] /= (data['Population'].max() / 100)
     data['Roughness'] = data['Roughness'] * data['Brazil']
@@ -67,7 +77,9 @@ st.write(f"""Tweak the modality thresholds below to find potential locations for
 selected_region = st.selectbox('Selected region:', ['Brazil', 'Rio Grande do Norte', 'Bahia', 'Rio Grande do Sul', 'Piaui', 'Nordeste'])
 data = all_data[selected_region]
 
+moran_brazil_ratio = data['Brazil'].sum() / data['Brazil'].size
 col1, col2, col3, col4 = st.columns(4)
+
 slider1, slider2, slider3, slider4 = st.columns(4)
 
 
@@ -110,7 +122,6 @@ col1.write(f"""The map to the right shows the areas that are suitable for wind p
 col1.write(f"""Click to compute Moran's I for the map.""")
 if col1.button('Compute Moran\'s I'):
     col1.write(f"""The Moran's I value for the map is {moran_i(final_mask, data):.2f}.""")
-# col1.write(f"""The Moran's I value for the map is {moran_i(final_mask, data):.2f}.""")
 col1.write("""You can download the mask by clicking the bytton below, and use it to further explore the data in your own tools.""")
 col1.download_button('Download mask', final_mask.tobytes(), 'mask.npy', 'application/octet-stream')
 col2.image(final_mask, caption='Final mask', use_column_width=True)
