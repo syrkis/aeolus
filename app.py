@@ -69,7 +69,7 @@ moran_brazil_ratio = all_data['Brazil']['Brazil'].sum() / all_data['Brazil']['Br
 # Header
 st.title("Brazilian wind farm location scout")
 st.write(f"""Tweak the modality thresholds below to find potential locations for wind farm projects.
-         The explorer will show you the best locations based on how you've valued Power Density, Wind Speed, Biodiversity and Roughness.
+         The explorer will show you the best locations based on how you've valued Power Density, Wind Speed, Biodiversity and Terrain Roughness.
          Five of Brazil's 26 states have meterological conditions that are suitable for wind power generation.
          You can focus on a paricular state, or get a country wide overview.""")
 
@@ -90,10 +90,10 @@ slider1, slider2, slider3, slider4 = st.columns(4)
 protected_areas_mask = ((data['Protected Areas'] + data['Airports'] + data['Offshore']) > 0).astype(float)
 
 # thresholds
-power_density_threshold = slider1.slider("Power dentiy percentile*", 50, 99, 50)
-grid_distance_threshold = 26 - slider2.slider("Max km to 400V+ power line", 5, 25, 25)
+power_density_threshold = slider1.slider("Power dentiy* (percentile)", 50, 99, 50)
+grid_distance_threshold = 26 - slider2.slider("Max distance (km) to 400V+ power line", 5, 25, 25)
 wind_speed_threshold = slider3.slider("Minimum wind speed (m/s)", 5, 10, 5)
-roughness_threshold = int(slider4.slider("Rougness (percentile)", 0, 100, 0) / 2) + 50
+roughness_threshold = int(slider4.slider("Terrain Roughness (percentile)", 0, 100, 0) / 2) + 50
 
 # masks
 power_density_mask = make_mask(data['Power Density'], power_density_threshold)
@@ -120,12 +120,12 @@ final_mask = (power_density_mask *
 
 col1, col2 = st.columns(2)
 col1.header(f"{mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation")
-col1.write(f"""Using your thresholds, {mask_ratio(final_mask) * 100:.2f}% of Brazil is suitable for wind power generation.""")
+col1.write(f"""Using your thresholds, {mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation.""")
 col1.write(f"""The map to the right shows the areas that are suitable for wind power generation, using your thresholds.""")
-col1.write(f"""Click to compute Moran's I for the map.""")
+col1.write("Moran's I is a measure of spatial autocorrelation that quantifies the degree to which the potential wind farm areas are clustered together. The measure ranges from -1 (perfect dispersion) to 1 (perfect clustering). Click below to compute—this may take a few seconds.")
 if col1.button('Compute Moran\'s I'):
-    col1.write(f"""The Moran's I value for the map is {moran_i(final_mask, data):.2f}.""")
-col1.write("""You can download the mask by clicking the bytton below, and use it to further explore the data in your own tools.""")
+    col1.header(f"""Moran's I is {moran_i(final_mask, data):.2f}.""")
+col1.write("""You can download the mask by clicking the button below, and use it to further explore the data in your own tools. Current mask is a numpy array, with 1 representing suitable areas, and 0 representing unsuitable areas. More formats are comming soon.""")
 col1.download_button('Download mask', final_mask.tobytes(), 'mask.npy', 'application/octet-stream')
 col2.image(final_mask, caption='Final mask', use_column_width=True)
 
@@ -135,7 +135,8 @@ col2.image(final_mask, caption='Final mask', use_column_width=True)
 
 
 # images
-st.write(f"""In addition to the thesholds you've set, the map also excludes areas that are not suitable due biodiversity considerations, airports, and other protected areas.""")
+st.header('Additional exclusion criteria')
+st.write(f"""In addition to the thresholds you've set, the map also excludes areas unsuitable due to biodiversity considerations and other protected areas, airports, and slopes above 20 % inclination.""")
 col1, col2, col3 = st.columns(3)
 col1.image(data['Protected Areas'], caption='Protected Areas', use_column_width=True)
 col2.image(data['Airports'], caption='Airports', use_column_width=True)
@@ -144,4 +145,4 @@ col3.image(data['Slope'], caption='Slope', use_column_width=True)
 
 
 # footer
-# st.write('*Power density is an aggregate measure by the Global Winds Atlas, representing how much potential wind power is in an area.')
+st.write('*Power density is an aggregate measure by the Global Winds Atlas, representing how much potential wind power is in an area.')
