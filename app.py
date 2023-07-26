@@ -1,6 +1,9 @@
 import streamlit as st
 import numpy as np
 import os
+from esda.moran import Moran
+from libpysal.weights import lat2W
+# import rasterio
 
 # set wide layout
 st.set_page_config(layout="wide")
@@ -11,7 +14,7 @@ def load_data(state=None):
     if state is not None:
         fps = [fp + '_' + state for fp in fps]
     names = ['Power Density', 'Power Lines', 'Population', 'Wind Speed', 'Protected Areas', 'Airports', 'Slope', 'Roughness', 'Brazil', 'Offshore']
-    data = {name: np.load(os.path.join("masks", fp + '.npy')).astype(float) for fp, name in zip(fps, names)}
+    data = {name: np.load(os.path.join("masks", fp + '.npy')).astype(float)[::2, ::2] for fp, name in zip(fps, names)}
     data['Power Density'] /= (data['Power Density'].max() / 100)
     data['Population'] /= (data['Population'].max() / 100)
     data['Roughness'] = data['Roughness'] * data['Brazil']
@@ -36,10 +39,19 @@ def mask_ratio(mask):
 
 def calculate_percentile(data, percentile):
     return np.percentile(data, percentile)
+
+def moran_i(mask, _):
+    # compute standardized moran's I (use vectorized operations)
+    # exclude values outside of the brazil offshore mask
+    moran = Moran(mask.flatten(), w)
+    return moran.I * moran_brazil_ratio
     
 
 all_data = {state: load_data(state) for state in  ['Rio Grande do Norte', 'Bahia', 'Rio Grande do Sul', 'Piaui', 'Nordeste']}
 all_data['Brazil'] = load_data()
+
+w = lat2W(*all_data['Brazil']['Brazil'].shape)
+moran_brazil_ratio = all_data['Brazil']['Brazil'].sum() / all_data['Brazil']['Brazil'].size
 
 # Header
 st.title("Brazilian wind farm location scout")
@@ -66,13 +78,13 @@ protected_areas_mask = ((data['Protected Areas'] + data['Airports'] + data['Offs
 power_density_threshold = slider1.slider("Power dentiy percentile*", 50, 99, 50)
 grid_distance_threshold = 26 - slider2.slider("Max km to 400V+ power line", 5, 25, 25)
 wind_speed_threshold = slider3.slider("Minimum wind speed (m/s)", 5, 10, 5)
-roughness_threshold = int(slider4.slider("Rougness (percentile)", 0, 100, 50) / 2) + 50
+roughness_threshold = int(slider4.slider("Rougness (percentile)", 0, 100, 0) / 2) + 50
 
 # masks
 power_density_mask = make_mask(data['Power Density'], power_density_threshold)
 grid_distance_mask = make_mask(data['Power Lines'], grid_distance_threshold)
 wind_speed_mask = make_mask(data['Wind Speed'], wind_speed_threshold)
-roughness_mask = ((make_mask(data['Roughness'], calculate_percentile(data['Roughness'], roughness_threshold)) + data['Offshore']) > 0).astype(float)
+roughness_mask = make_mask(data['Roughness'], calculate_percentile(data['Roughness'], roughness_threshold))
 
 # images
 col1.image(power_density_mask, use_column_width=True)
@@ -86,7 +98,7 @@ col4.image(roughness_mask, use_column_width=True)
 final_mask = (power_density_mask *
               ((grid_distance_mask + data['Offshore']) > 0) *
               wind_speed_mask * protected_areas_mask *
-              roughness_mask)
+              (roughness_mask + data['Offshore']) > 0).astype(float)
                 # data['Protected Areas'])
 
 
@@ -95,8 +107,12 @@ col1, col2 = st.columns(2)
 col1.header(f"{mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation")
 col1.write(f"""Using your thresholds, {mask_ratio(final_mask) * 100:.2f}% of Brazil is suitable for wind power generation.""")
 col1.write(f"""The map to the right shows the areas that are suitable for wind power generation, using your thresholds.""")
+col1.write(f"""Click to compute Moran's I for the map.""")
+if col1.button('Compute Moran\'s I'):
+    col1.write(f"""The Moran's I value for the map is {moran_i(final_mask, data):.2f}.""")
+# col1.write(f"""The Moran's I value for the map is {moran_i(final_mask, data):.2f}.""")
 col1.write("""You can download the mask by clicking the bytton below, and use it to further explore the data in your own tools.""")
-col1.download_button('Download mask', final_mask.tostring(), 'mask.npy', 'application/octet-stream')
+col1.download_button('Download mask', final_mask.tobytes(), 'mask.npy', 'application/octet-stream')
 col2.image(final_mask, caption='Final mask', use_column_width=True)
 
 
