@@ -33,6 +33,9 @@ def make_mask(frame, theshold=None):
 
 def mask_ratio(mask):
     return mask.sum() / data['Brazil'].sum()
+
+def calculate_percentile(data, percentile):
+    return np.percentile(data, percentile)
     
 
 all_data = {state: load_data(state) for state in  ['Rio Grande do Norte', 'Bahia', 'Rio Grande do Sul', 'Piaui', 'Nordeste']}
@@ -52,8 +55,8 @@ st.write(f"""Tweak the modality thresholds below to find potential locations for
 selected_region = st.selectbox('Selected region:', ['Brazil', 'Rio Grande do Norte', 'Bahia', 'Rio Grande do Sul', 'Piaui', 'Nordeste'])
 data = all_data[selected_region]
 
-col1, col2, col3 = st.columns(3)
-slider1, slider2, slider3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
+slider1, slider2, slider3, slider4 = st.columns(4)
 
 
 # static masks
@@ -63,26 +66,27 @@ protected_areas_mask = ((data['Protected Areas'] + data['Airports'] + data['Offs
 power_density_threshold = slider1.slider("Power dentiy percentile*", 50, 99, 50)
 grid_distance_threshold = 26 - slider2.slider("Max km to 400V+ power line", 5, 25, 25)
 wind_speed_threshold = slider3.slider("Minimum wind speed (m/s)", 5, 10, 5)
-# roughness_threshold = slider4.slider("Rougness (percentile)", 0, 100, 50)
+roughness_threshold = int(slider4.slider("Rougness (percentile)", 0, 100, 50) / 2) + 50
 
 # masks
 power_density_mask = make_mask(data['Power Density'], power_density_threshold)
 grid_distance_mask = make_mask(data['Power Lines'], grid_distance_threshold)
 wind_speed_mask = make_mask(data['Wind Speed'], wind_speed_threshold)
-# roughness_mask = make_mask(data['Roughness'], roughness_threshold)
+roughness_mask = ((make_mask(data['Roughness'], calculate_percentile(data['Roughness'], roughness_threshold)) + data['Offshore']) > 0).astype(float)
 
 # images
 col1.image(power_density_mask, use_column_width=True)
 col2.image(grid_distance_mask, use_column_width=True)
 col3.image(wind_speed_mask, use_column_width=True)
-# col4.image(roughness_mask, use_column_width=True)
+col4.image(roughness_mask, use_column_width=True)
 
 
 
 # final mask
 final_mask = (power_density_mask *
               ((grid_distance_mask + data['Offshore']) > 0) *
-              wind_speed_mask * protected_areas_mask)
+              wind_speed_mask * protected_areas_mask *
+              roughness_mask)
                 # data['Protected Areas'])
 
 
