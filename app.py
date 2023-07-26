@@ -19,7 +19,7 @@ def pad_matrix_to_square(M):
     return np.pad(M, pad_width, mode='constant', constant_values=0)
 
 @st.cache_data
-def load_data(state=None):
+def load_data(state=None)
     fps = ['power_density', 'powerlines', 'population_mask', 'wind_speed', 'protected_areas_mask', 'airport_mask', 'slope_mask', 'roughness', 'brazil_mask', 'offshore_mask']
     if state is not None:
         fps = [fp + '_' + state for fp in fps]
@@ -123,9 +123,10 @@ col1, col2 = st.columns(2)
 col1.header(f"{mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation. Thats {area_sizes[selected_region] * mask_ratio(final_mask):,.0f} km²!")
 col1.write(f"""Using your thresholds, {mask_ratio(final_mask) * 100:.2f}% of {selected_region} is suitable for wind power generation.""")
 col1.write(f"""The map to the right shows the areas that are suitable for wind power generation, using your thresholds.""")
-col1.write("Moran's I is a measure of spatial autocorrelation that quantifies the degree to which the potential wind farm areas are clustered together. The measure ranges from -1 (perfect dispersion) to 1 (perfect clustering). Click below to compute—this may take a few seconds.")
-if col1.button('Compute Moran\'s I'):
-    col1.header(f"""Moran's I is {moran_i(final_mask, data):.2f}.""")
+col1.write("Moran's I is a measure of spatial autocorrelation that quantifies the degree to which the potential wind farm areas are clustered together. The measure ranges from -1 (perfect dispersion) to 1 (perfect clustering). Click below to compute—this may take a few seconds. NOTE: Currently this only works when Brazil is selected.")
+if selected_region == 'Brazil':
+    if col1.button('Compute Moran\'s I'):
+        col1.header(f"""Moran's I is {moran_i(final_mask, data):.2f}.""")
 col1.write("""You can download the mask by clicking the button below, and use it to further explore the data in your own tools. Current mask is a numpy array, with 1 representing suitable areas, and 0 representing unsuitable areas. More formats are comming soon.""")
 col1.download_button('Download mask', final_mask.tobytes(), 'mask.npy', 'application/octet-stream')
 col2.image(final_mask, caption='Final mask', use_column_width=True)
@@ -142,8 +143,6 @@ col1, col2, col3 = st.columns(3)
 col1.image(data['Protected Areas'], caption='Protected Areas', use_column_width=True)
 col2.image(data['Airports'], caption='Airports', use_column_width=True)
 col3.image(data['Slope'], caption='Slope', use_column_width=True)
-
-
 
 # footer
 st.write('*Power density is an aggregate measure by the Global Winds Atlas, representing how much potential wind power is in an area.')
